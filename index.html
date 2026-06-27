@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>네모의 비행</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Lil Wing 스타일 게임</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: skyblue;
+    text-align: center;
+  }
+  canvas {
+    background: #70c5ce;
+    display: block;
+    margin: 0 auto;
+  }
+  #restart {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+  }
+  button {
+    padding: 10px 20px;
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game" width="400" height="600"></canvas>
+
+<div id="restart">
+  <h2>게임 오버</h2>
+  <button onclick="restartGame()">다시 시작</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let bird, pipes, score, gameOver;
+
+function init() {
+  bird = {
+    x: 100,
+    y: 300,
+    velocity: 0,
+    size: 30
+  };
+
+  pipes = [];
+  score = 0;
+  gameOver = false;
+}
+
+init();
+
+// 클릭 = 점프
+document.addEventListener("click", () => {
+  if (!gameOver) {
+    bird.velocity = -8;
+  }
+});
+
+// 장애물 생성
+function createPipe() {
+  let gap = 150;
+  let topHeight = Math.random() * 300 + 50;
+
+  pipes.push({
+    x: canvas.width,
+    top: topHeight,
+    bottom: topHeight + gap,
+    passed: false
+  });
+}
+
+// 2초마다 생성
+setInterval(() => {
+  if (!gameOver) createPipe();
+}, 2000);
+
+// 업데이트
+function update() {
+  // 중력
+  bird.velocity += 0.5;
+  bird.y += bird.velocity;
+
+  // 바닥/천장 충돌
+  if (bird.y < 0 || bird.y + bird.size > canvas.height) {
+    endGame();
+  }
+
+  pipes.forEach(pipe => {
+    pipe.x -= 3;
+
+    // 충돌
+    if (
+      bird.x + bird.size > pipe.x &&
+      bird.x < pipe.x + 60 &&
+      (bird.y < pipe.top || bird.y + bird.size > pipe.bottom)
+    ) {
+      endGame();
+    }
+
+    // 점수
+    if (!pipe.passed && pipe.x + 60 < bird.x) {
+      pipe.passed = true;
+      score++;
+    }
+  });
+}
+
+// 그리기
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 새
+  ctx.fillStyle = "yellow";
+  ctx.fillRect(bird.x, bird.y, bird.size, bird.size);
+
+  // 파이프
+  ctx.fillStyle = "green";
+  pipes.forEach(pipe => {
+    ctx.fillRect(pipe.x, 0, 60, pipe.top);
+    ctx.fillRect(pipe.x, pipe.bottom, 60, canvas.height);
+  });
+
+  // 점수
+  ctx.fillStyle = "white";
+  ctx.font = "30px Arial";
+  ctx.fillText(score, 20, 50);
+}
+
+// 게임오버
+function endGame() {
+  gameOver = true;
+  document.getElementById("restart").style.display = "block";
+}
+
+// 재시작
+function restartGame() {
+  init();
+  document.getElementById("restart").style.display = "none";
+}
+
+// 루프
+function loop() {
+  if (!gameOver) update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
+    
+  </body>
+  
+</html>
